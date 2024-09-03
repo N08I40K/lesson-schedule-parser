@@ -20,16 +20,11 @@ jobs:
         node-version: latest
     - run: npm i
     - run: npm run build
-    - name: Archive production artifacts
-      uses: actions/upload-artifact@v4
+    - name: Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: build
-        path: |
+        files: |
           build
           .gitignore
           package.json
           package-lock.json
-    - uses: ncipollo/release-action@v1
-      with:
-        artifacts: "artifacts/build.zip"
-        tag: "${{ github.event.inputs.tag }}"
