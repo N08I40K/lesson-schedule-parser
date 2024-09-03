@@ -31,5 +31,5 @@ jobs:
           package-lock.json
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "artifacts/*"
+        artifacts: "artifacts/build.zip"
         tag: "${{ github.event.inputs.tag }}"
