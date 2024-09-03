@@ -2,8 +2,11 @@ name: Release
 
 on: 
   workflow_dispatch:
-    branches:
-      - main
+    inputs:
+      tag:
+        description: 'Release tag'
+        required: true
+        type: "string"
 
 jobs:
   build:
@@ -29,3 +32,4 @@ jobs:
     - uses: ncipollo/release-action@v1
       with:
         artifacts: "artifacts/*"
+        tag: "${{ github.event.inputs.tag }}"
