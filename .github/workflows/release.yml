@@ -20,7 +20,7 @@ jobs:
         node-version: latest
     - run: npm i
     - run: npm run build
-    - run: tar -cf build.tar build .gitignore package.json package-lock.json
+    - run: tar -cf build.tar build .gitignore package.json package-lock.json Dockerfile docker-compose.yml
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
