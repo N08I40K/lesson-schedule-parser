@@ -15,7 +15,6 @@ const scheduleParser = new LessonScheduleParser(
         "https://politehnikum-eng.ru/index/raspisanie_zanjatij/0-409",
         XlsDownloaderCacheMode.SOFT), ["ИС-214/23"]);
 const configuration = loadConfiguration();
-console.log("configuration", configuration);
 let cachedGroup: Group | null = null;
 
 scheduleParser.get_lesson_schedule(true).then((groups: Array<Group>) => {
@@ -23,11 +22,6 @@ scheduleParser.get_lesson_schedule(true).then((groups: Array<Group>) => {
         return;
 
     cachedGroup = groups[0];
-    console.log("parsed!");
-
-    sendDay(configuration.admin, cachedGroup.days[1]).then(() => {
-        console.log("send!");
-    });
 });
 
 function serializeDay(day: Day): string {
@@ -73,11 +67,8 @@ async function sendChangeNotification(group: Group): Promise<void> {
     for (const day_idx in group.days) {
         const lday = group.days[day_idx];
         const rday = cachedGroup.days[day_idx];
-        console.log(day_idx);
 
         if (rday === undefined || rday.lessons.length != lday.lessons.length) {
-            console.log(rday);
-            console.log(rday?.lessons.length, lday.lessons.length);
             const serialized_day: string = serializeDay(lday);
             for (const subscriber of configuration.subscribers)
                 await bot.telegram.sendMessage(subscriber, serialized_day);
@@ -95,7 +86,7 @@ async function sendChangeNotification(group: Group): Promise<void> {
                     || llesson.cabinets.toString() !== rlesson.cabinets.toString()
                     || llesson.teacherNames.toString() !== rlesson.teacherNames.toString()
                 )) {
-                console.log("write no by");
+
                 const serialized_day: string = serializeDay(lday);
                 for (const subscriber of configuration.subscribers)
                     await bot.telegram.sendMessage(subscriber, serialized_day);
@@ -132,6 +123,7 @@ async function refreshData() {
 
 setInterval(async (): Promise<void> => {
     console.log("Try refresh!");
+
     await refreshData();
 }, 10 * 60 * 1000);
 
@@ -149,22 +141,9 @@ bot.command("tomorrow", async (ctx: Context<Update>) => {
     await sendDay(ctx.message.chat.id, cachedGroup.days[now.getDay() == 7 ? 0 : now.getDay()], false, true);
 });
 
-// bot.command("refresh", async () => {
-//     await refreshData();
-// });
-
 bot.launch().then(() => {
     console.log("Bot stopped!");
 });
 
 process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
-
-// async function main() {
-//
-//     const message = await scheduleParser.get_lesson_schedule();
-//     console.log(message);
-//     for (const day of message[0].days) {
-//         console.log(day);
-//     }
-// }
