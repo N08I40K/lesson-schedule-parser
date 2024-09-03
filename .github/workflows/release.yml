@@ -20,12 +20,10 @@ jobs:
         node-version: latest
     - run: npm i
     - run: npm run build
+    - run: tar -cf build.tar build .gitignore package.json package-lock.json
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: "${{ github.event.inputs.tag }}"
         files: |
-          build
-          .gitignore
-          package.json
-          package-lock.json
+          build.tar
