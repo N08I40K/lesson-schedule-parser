@@ -25,7 +25,7 @@ scheduleParser.get_lesson_schedule(true).then((groups: Array<Group>) => {
     cachedGroup = groups[0];
     console.log("parsed!");
 
-    sendDay(configuration.admin, cachedGroup.days[1]).then(r => {
+    sendDay(configuration.admin, cachedGroup.days[1]).then(() => {
         console.log("send!");
     });
 });
@@ -149,9 +149,9 @@ bot.command("tomorrow", async (ctx: Context<Update>) => {
     await sendDay(ctx.message.chat.id, cachedGroup.days[now.getDay() == 7 ? 0 : now.getDay()], false, true);
 });
 
-bot.command("refresh", async (ctx: Context<Update>) => {
-    await refreshData();
-});
+// bot.command("refresh", async () => {
+//     await refreshData();
+// });
 
 bot.launch().then(() => {
     console.log("Bot stopped!");
