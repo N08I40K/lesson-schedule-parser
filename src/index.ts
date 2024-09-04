@@ -24,7 +24,22 @@ scheduleParser.get_lesson_schedule(true).then((groups: Array<Group>) => {
     cachedGroup = groups[0];
 });
 
+function getDayLessonsCount(day: Day): number {
+    let result: number = 0;
+
+    for (const lesson of day.lessons) {
+        if (lesson.name.length > 0)
+            ++result;
+    }
+
+    return result;
+}
+
 function serializeDay(day: Day): string {
+    if (getDayLessonsCount(day) == 0)
+        return `${day.name}\n
+Расписание ещё не обновилось :(`.trimEnd();
+
     let additional_lessons: number = 0;
     let normal_lessons: number = 0;
     let full_normal_lessons: number = 0;
