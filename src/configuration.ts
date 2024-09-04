@@ -1,34 +1,59 @@
 import * as fs from "node:fs";
-import {IsNumber} from "class-validator";
-import {plainToClass} from "class-transformer";
+import {Expose, plainToInstance} from "class-transformer";
+import {XlsDownloaderCacheMode} from "./site-downloader.base";
 
-export class Configuration {
-    public allowed_users: Set<number> = new Set();
-    public subscribers: Array<number> = [];
-    public groups: Array<number> = [];
+export class TelegramConfiguration {
+    @Expose()
+    public subscribers: Array<number> = [996004735];
 
-    @IsNumber()
+    @Expose()
     public admin: number = 996004735;
 }
 
-export function saveConfiguration(configuration: Configuration): void {
-    fs.writeFileSync("./data/configuration.json", JSON.stringify(configuration));
+export class SocialMediaConfiguration {
+    @Expose()
+    public telegram: TelegramConfiguration = new TelegramConfiguration();
 }
 
-export function loadConfiguration(): Configuration {
+export class Configuration {
+    @Expose()
+    public group: string = "ИС-214/23";
+
+    @Expose()
+    public mainUrl: string = "https://politehnikum-eng.ru/index/raspisanie_zanjatij/0-409";
+
+    @Expose()
+    public cacheMode: XlsDownloaderCacheMode = XlsDownloaderCacheMode.SOFT;
+
+    @Expose()
+    public socialMedia: SocialMediaConfiguration = new SocialMediaConfiguration();
+}
+
+let configuration = new Configuration();
+
+export function saveConfiguration(): void {
+    fs.writeFileSync("./data/configuration.json", JSON.stringify(configuration, null, 4));
+}
+
+export function loadConfiguration(): void {
     try {
         fs.accessSync("./data/configuration.json", fs.constants.R_OK);
     } catch (error) {
-        const configuration = new Configuration();
-        saveConfiguration(configuration);
-
-        return configuration;
+        saveConfiguration();
     }
 
     try {
         const buffer = fs.readFileSync("./data/configuration.json");
-        return plainToClass(Configuration, JSON.parse(buffer.toString()));
-    } catch (error) {
-        return new Configuration();
-    }
+
+        configuration = plainToInstance(Configuration, JSON.parse(buffer.toString()), {
+            excludeExtraneousValues: true,
+            exposeUnsetFields: false
+        });
+    } catch (error) {}
+
+    saveConfiguration();
+}
+
+export function getConfiguration(): Configuration {
+    return configuration;
 }

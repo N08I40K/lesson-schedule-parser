@@ -2,18 +2,22 @@ export type XlsDownloaderResult = { fileData: ArrayBuffer, updateDate: string, e
 
 export enum XlsDownloaderCacheMode {
     NONE = 0,
-    SOFT, // читать кеш только если был изменён etag.
+    SOFT, // читать кеш только если не был изменён etag.
     HARD // читать кеш всегда, кроме случаев его отсутствия
 }
 
 export abstract class XlsDownloaderBase {
-    public constructor(protected url: string,
-                       protected cache_mode: XlsDownloaderCacheMode = XlsDownloaderCacheMode.NONE) {
+    public constructor(protected readonly url: string,
+                       protected readonly cacheMode = XlsDownloaderCacheMode.NONE) {
     };
 
-    abstract downloadXLS(): Promise<XlsDownloaderResult>;
+    public abstract downloadXLS(): Promise<XlsDownloaderResult>;
 
-    abstract getCachedXLS(): Promise<XlsDownloaderResult | null>;
+    public abstract getCachedXLS(): Promise<XlsDownloaderResult | null>;
 
-    abstract getLastETag(): string | null;
+    public abstract getLastETag(): string | null;
+
+    public getCacheMode(): XlsDownloaderCacheMode {
+        return this.cacheMode;
+    }
 }

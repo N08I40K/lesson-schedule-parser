@@ -6,8 +6,8 @@
   "scripts": {
     "build": "npx tsc",
     "run": "node ./build/index.js",
-    "debug": "nodemon --exec \"node --inspect-brk=0.0.0.0:9229 --require ts-node/register src/index.ts\"",
-    "dev": "tsc && concurrently \"tsc -w\" \"nodemon ./build/index.js\""
+    "debug": "nodemon --watch ./src --exec \"node --inspect-brk=0.0.0.0:9229 --require ts-node/register src/index.ts\"",
+    "dev": "tsc && concurrently \"tsc -w\" \"nodemon --watch ./src ./build/index.js\""
   },
   "keywords": [],
   "author": "",

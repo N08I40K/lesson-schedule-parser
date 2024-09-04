@@ -8,13 +8,12 @@ export class XlsDownloaderImpl extends XlsDownloaderBase {
     private last_etag: string | null = null;
 
     private async getDOM(): Promise<JSDOM> {
-        const response = await axios.get("https://politehnikum-eng.ru/index/raspisanie_zanjatij/0-409");
+        const response = await axios.get(this.url);
 
         if (response.status !== 200) {
-            console.error(`Unable to get main page: ${response.status}`);
-            console.error(response.statusText);
-
-            throw new Error("Could not get the main page");
+            throw new Error(`Неудалось получить данные с основной страницы!
+Статус код: ${response.status}
+${response.statusText}`);
         }
 
         return new JSDOM(response.data, {
@@ -26,11 +25,11 @@ export class XlsDownloaderImpl extends XlsDownloaderBase {
     private parseData(dom: JSDOM): { downloadLink: string, updateDate: string } {
         const schedule_block = dom.window.document.getElementById("cont-i");
         if (schedule_block === null)
-            throw new Error("Could not find the schedule block");
+            throw new Error("Не удалось найти блок расписаний!");
 
         const schedules = schedule_block.getElementsByTagName("div");
         if (schedules === null || schedules.length === 0)
-            throw new Error("Could not find the schedules");
+            throw new Error("Не удалось найти строку с расписанием!");
 
         const poltavskaya = schedules[0];
         const link = poltavskaya.getElementsByTagName("a")[0]!;
@@ -80,7 +79,7 @@ export class XlsDownloaderImpl extends XlsDownloaderBase {
                 fileData: file_data,
                 updateDate: update_date,
                 etag: etag,
-                new: this.cache_mode === XlsDownloaderCacheMode.HARD
+                new: this.cacheMode === XlsDownloaderCacheMode.HARD
             };
         } catch (err) {
             return null;
@@ -97,7 +96,7 @@ export class XlsDownloaderImpl extends XlsDownloaderBase {
     }
 
     public async downloadXLS(): Promise<XlsDownloaderResult> {
-        if (this.cache_mode === XlsDownloaderCacheMode.HARD) {
+        if (this.cacheMode === XlsDownloaderCacheMode.HARD) {
             const cached_result = this.tryReadCache();
             if (cached_result !== null) {
                 this.last_etag = cached_result.etag;
@@ -108,24 +107,23 @@ export class XlsDownloaderImpl extends XlsDownloaderBase {
         const dom = await this.getDOM();
         const parse_data = this.parseData(dom);
 
-        const file_data = await axios.get(parse_data.downloadLink, {responseType: "arraybuffer"});
-        if (file_data.status !== 200) {
-            console.error(`Unable to get main page: ${file_data.status}`);
-            console.error(file_data.statusText);
-
-            throw new Error("Could not get the XLS");
+        const response = await axios.get(parse_data.downloadLink, {responseType: "arraybuffer"});
+        if (response.status !== 200) {
+            throw new Error(`Неудалось получить excel файл!
+Статус код: ${response.status}
+${response.statusText}`);
         }
 
         const result: XlsDownloaderResult = {
-            fileData: file_data.data.buffer,
+            fileData: response.data.buffer,
             updateDate: parse_data.updateDate,
-            etag: file_data.headers["etag"],
-            new: this.cache_mode === XlsDownloaderCacheMode.NONE
+            etag: response.headers["etag"],
+            new: this.cacheMode === XlsDownloaderCacheMode.NONE
                 ? true
-                : (this.tryReadCache()?.etag) !== file_data.headers["etag"]
+                : (this.tryReadCache()?.etag) !== response.headers["etag"]
         };
 
-        if (this.cache_mode !== XlsDownloaderCacheMode.NONE)
+        if (this.cacheMode !== XlsDownloaderCacheMode.NONE)
             this.writeCache(result);
 
         this.last_etag = result.etag;
