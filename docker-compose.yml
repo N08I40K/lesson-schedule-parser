@@ -6,6 +6,7 @@ services:
     container_name: lesson_schedule_parser
     volumes:
       - data:/app/data
+      - ./.env/:/app/.env
 
 volumes:
   data:
