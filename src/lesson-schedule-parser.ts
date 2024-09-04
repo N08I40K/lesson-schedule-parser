@@ -1,6 +1,7 @@
 import {XlsDownloaderBase, XlsDownloaderResult} from "./site-downloader.base";
 
 import * as XLSX from "xlsx";
+import {trimAll} from "./string.util";
 
 type InternalId = { r: number, c: number, name: string };
 type InternalDay = InternalId & { lessons: Array<InternalId> };
@@ -48,10 +49,10 @@ export class LessonScheduleParser {
 
         let teacherFullNames: Array<string> = [];
         for (let i = 0; i < sm!.length; i++)
-            teacherFullNames.push(sm[i]);
+            teacherFullNames.push(sm[i].trim());
 
         return {
-            lessonName: lesson_name.substring(0, fm.index),
+            lessonName: lesson_name.substring(0, fm.index).trim(),
             teacherFullNames: teacherFullNames
         };
     }
@@ -139,18 +140,13 @@ export class LessonScheduleParser {
                         }
                     }
 
-                    const parse_result = this.parseTeacherFullNames(lesson_name
-                        ? lesson_name.replace("\n", "").trim()
-                        : "");
-
                     const normal: boolean = lesson_time?.includes(" пара ");
-                    if (normal)
-                        lesson_time = lesson_time.substring(6);
+                    const parse_result = this.parseTeacherFullNames(trimAll(lesson_name?.replace("\n", "") ?? ""));
 
                     const result_lesson: Lesson = {
-                        time: lesson_time.trim(),
+                        time: (normal ? lesson_time.substring(6) : lesson_time).trim(),
                         normal: normal,
-                        name: parse_result.lessonName.trim(),
+                        name: parse_result.lessonName,
                         cabinets: lesson_cabinets,
                         teacherNames: parse_result.teacherFullNames
                     };

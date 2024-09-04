@@ -44,11 +44,10 @@ function serializeDay(day: Day): string {
             ++full_normal_lessons;
 
             lesson_description += `${normal_lessons}. ${lesson.name} (${lesson.time}).
-+ Преподавател(ь/и) - ${lesson.teacherNames.join(", ")}
-+ Кабинет(ы) - ${lesson.cabinets.join(", ")}\n`;
-        } else {
+| Преподавател${lesson.teacherNames.length > 1 ? "и" : "ь"} - ${lesson.teacherNames.join(", ")}
+| Кабинет${lesson.cabinets.length > 1 ? "ы" : ""} - ${lesson.cabinets.join(", ")}\n\n`;
+        } else
             lesson_description += `${lesson.name} (${lesson.time})\n`;
-        }
     }
 
     return `${day.name}\n
