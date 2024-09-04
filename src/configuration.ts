@@ -12,12 +12,12 @@ export class Configuration {
 }
 
 export function saveConfiguration(configuration: Configuration): void {
-    fs.writeFileSync("./configuration.json", JSON.stringify(configuration));
+    fs.writeFileSync("./data/configuration.json", JSON.stringify(configuration));
 }
 
 export function loadConfiguration(): Configuration {
     try {
-        fs.accessSync("./configuration.json", fs.constants.R_OK);
+        fs.accessSync("./data/configuration.json", fs.constants.R_OK);
     } catch (error) {
         const configuration = new Configuration();
         saveConfiguration(configuration);
@@ -26,7 +26,7 @@ export function loadConfiguration(): Configuration {
     }
 
     try {
-        const buffer = fs.readFileSync("./configuration.json");
+        const buffer = fs.readFileSync("./data/configuration.json");
         return plainToClass(Configuration, JSON.parse(buffer.toString()));
     } catch (error) {
         return new Configuration();

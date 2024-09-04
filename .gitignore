@@ -1,7 +1,6 @@
-./.env
 ./build/
 ./node_modules/
 ./.idea/
 
-./configuration.json
-./caches/
+./data/
+./.env

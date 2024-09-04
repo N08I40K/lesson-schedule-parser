@@ -6,6 +6,13 @@ import {XlsDownloaderCacheMode} from "./site-downloader.base";
 import {telegramConstants} from "./constants";
 import {Update} from "telegraf/typings/core/types/typegram";
 import {loadConfiguration} from "./configuration";
+import * as fs from "node:fs";
+
+try {
+    fs.accessSync("./data/", fs.constants.R_OK);
+} catch (err) {
+    fs.mkdirSync("./data/")
+}
 
 // TODO: Добавить обработку нескольких групп в боте.
 const bot = new Telegraf(telegramConstants.BOT_TOKEN);

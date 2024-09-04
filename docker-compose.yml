@@ -5,7 +5,7 @@ services:
     build: ./
     container_name: lesson_schedule_parser
     volumes:
-      - data:/app/
+      - data:/app/data
 
 volumes:
   data:

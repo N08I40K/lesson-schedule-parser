@@ -46,7 +46,7 @@ export class XlsDownloaderImpl extends XlsDownloaderBase {
 
     private isCacheDirExists(): boolean {
         try {
-            fs.accessSync("./caches/", fs.constants.R_OK);
+            fs.accessSync("./data/caches/", fs.constants.R_OK);
 
             return true;
         } catch (err) {
@@ -56,11 +56,11 @@ export class XlsDownloaderImpl extends XlsDownloaderBase {
 
     private writeCache(result: XlsDownloaderResult): void {
         if (!this.isCacheDirExists())
-            fs.mkdirSync("./caches/", {recursive: false});
+            fs.mkdirSync("./data/caches/", {recursive: false});
 
-        fs.writeFileSync("./caches/updateDate.txt", result.updateDate);
-        fs.writeFileSync("./caches/etag.txt", result.etag);
-        fs.writeFileSync("./caches/fileData.xls", new DataView(result.fileData));
+        fs.writeFileSync("./data/caches/updateDate.txt", result.updateDate);
+        fs.writeFileSync("./data/caches/etag.txt", result.etag);
+        fs.writeFileSync("./data/caches/fileData.xls", new DataView(result.fileData));
     }
 
     private tryReadCache(): XlsDownloaderResult | null {
@@ -68,13 +68,13 @@ export class XlsDownloaderImpl extends XlsDownloaderBase {
             return null;
 
         try {
-            fs.accessSync("./caches/updateDate.txt", fs.constants.R_OK);
-            fs.accessSync("./caches/etag.txt", fs.constants.R_OK);
-            fs.accessSync("./caches/fileData.xls", fs.constants.R_OK);
+            fs.accessSync("./data/caches/updateDate.txt", fs.constants.R_OK);
+            fs.accessSync("./data/caches/etag.txt", fs.constants.R_OK);
+            fs.accessSync("./data/caches/fileData.xls", fs.constants.R_OK);
 
-            const update_date = fs.readFileSync("./caches/updateDate.txt").toString();
-            const etag = fs.readFileSync("./caches/etag.txt").toString();
-            const file_data = fs.readFileSync("./caches/fileData.xls");
+            const update_date = fs.readFileSync("./data/caches/updateDate.txt").toString();
+            const etag = fs.readFileSync("./data/caches/etag.txt").toString();
+            const file_data = fs.readFileSync("./data/caches/fileData.xls");
 
             return {
                 fileData: file_data,
