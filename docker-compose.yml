@@ -1,6 +1,11 @@
 version: '3.5'
 services:
-  lesson_shedule_parser:
+  lesson_schedule_parser:
     restart: always
     build: ./
-    container_name: lesson_shedule_parser
+    container_name: lesson_schedule_parser
+    volumes:
+      - data:/app/
+
+volumes:
+  data:
