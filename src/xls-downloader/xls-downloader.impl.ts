@@ -1,17 +1,15 @@
-import {XlsDownloaderBase, XlsDownloaderCacheMode, XlsDownloaderResult} from "./site-downloader.base";
+import {XlsDownloaderBase, XlsDownloaderCacheMode, XlsDownloaderResult} from "./xls-downloader.base";
 import axios from "axios";
 import {JSDOM} from "jsdom";
 import * as fs from "node:fs";
 
 
 export class XlsDownloaderImpl extends XlsDownloaderBase {
-    private last_etag: string | null = null;
-
     private async getDOM(): Promise<JSDOM> {
         const response = await axios.get(this.url);
 
         if (response.status !== 200) {
-            throw new Error(`Неудалось получить данные с основной страницы!
+            throw new Error(`Не удалось получить данные с основной страницы!
 Статус код: ${response.status}
 ${response.statusText}`);
         }
@@ -87,29 +85,23 @@ ${response.statusText}`);
     }
 
     public async getCachedXLS(): Promise<XlsDownloaderResult | null> {
-        const xlsDownloaderResult = this.tryReadCache();
-
-        if (xlsDownloaderResult)
-            this.last_etag = xlsDownloaderResult.etag;
-
-        return xlsDownloaderResult;
+        return this.tryReadCache();
     }
 
     public async downloadXLS(): Promise<XlsDownloaderResult> {
         if (this.cacheMode === XlsDownloaderCacheMode.HARD) {
             const cached_result = this.tryReadCache();
-            if (cached_result !== null) {
-                this.last_etag = cached_result.etag;
+            if (cached_result !== null)
                 return cached_result;
-            }
         }
 
         const dom = await this.getDOM();
         const parse_data = this.parseData(dom);
 
+        // noinspection Annotator
         const response = await axios.get(parse_data.downloadLink, {responseType: "arraybuffer"});
         if (response.status !== 200) {
-            throw new Error(`Неудалось получить excel файл!
+            throw new Error(`Не удалось получить excel файл!
 Статус код: ${response.status}
 ${response.statusText}`);
         }
@@ -126,12 +118,6 @@ ${response.statusText}`);
         if (this.cacheMode !== XlsDownloaderCacheMode.NONE)
             this.writeCache(result);
 
-        this.last_etag = result.etag;
-
         return result;
-    }
-
-    public getLastETag(): string | null {
-        return this.last_etag;
     }
 }

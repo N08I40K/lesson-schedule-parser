@@ -1,8 +1,8 @@
-import {XlsDownloaderBase, XlsDownloaderCacheMode, XlsDownloaderResult} from "./site-downloader.base";
+import {XlsDownloaderBase, XlsDownloaderCacheMode, XlsDownloaderResult} from "./xls-downloader/xls-downloader.base";
 
 import * as XLSX from "xlsx";
 import {trimAll} from "./string.util";
-import {Day, Group, Lesson} from "./xls";
+import {Day, Group, Lesson, LessonTime, LessonType} from "./xls";
 
 type InternalId = { r: number, c: number, name: string };
 type InternalDay = InternalId & { lessons: Array<InternalId> };
@@ -16,10 +16,6 @@ export class LessonScheduleParser {
 
     public constructor(private xls_downloader: XlsDownloaderBase, private whitelisted_group: string) {
         this.getLessonSchedule(true).then();
-    }
-
-    public getXLSDownloader(): XlsDownloaderBase {
-        return this.xls_downloader;
     }
 
     private getCellName(worksheet: XLSX.Sheet, row: number, column: number): any | null {
@@ -94,11 +90,18 @@ export class LessonScheduleParser {
         let download_data: XlsDownloaderResult;
 
         if (!force_cached || (download_data = await this.xls_downloader.getCachedXLS()) === null) {
+            console.debug("Обновление кеша...");
             download_data = await this.xls_downloader.downloadXLS();
 
-            if (!download_data.new && this.lastResult && this.xls_downloader.getCacheMode() != XlsDownloaderCacheMode.NONE)
+            if (!download_data.new && this.lastResult && this.xls_downloader.getCacheMode() != XlsDownloaderCacheMode.NONE) {
+                console.debug("Так как скачанный XLS не новый, присутствует уже готовый результат и кеширование не отключено...");
+                console.debug("будет возвращён предыдущий результат.");
+
                 return this.lastResult;
+            }
         }
+
+        console.debug("Чтение кешированного XLS документа...");
 
         const work_book = XLSX.read(download_data.fileData);
         const worksheet = work_book.Sheets[work_book.SheetNames[0]];
@@ -115,7 +118,7 @@ export class LessonScheduleParser {
             const R_distance = day_skeletons[day_idx + 1].r - day_skeleton.r;
 
             for (let R = day_skeleton.r; R < day_skeleton.r + R_distance; ++R) {
-                let lesson_time = this.getCellName(worksheet, R, lesson_time_C);
+                const lesson_time = this.getCellName(worksheet, R, lesson_time_C)?.replaceAll(" ", "");
                 if (!lesson_time || typeof lesson_time !== "string")
                     continue;
 
@@ -134,12 +137,15 @@ export class LessonScheduleParser {
                     }
                 }
 
-                const normal: boolean = lesson_time?.includes(" пара ");
+                const type: LessonType = (lesson_time?.includes("пара")) ? LessonType.DEFAULT : LessonType.CUSTOM;
                 const parse_result = this.parseTeacherFullNames(trimAll(lesson_name?.replace("\n", "") ?? ""));
 
                 const result_lesson = new Lesson(
-                    (normal ? lesson_time.substring(6) : lesson_time).trim(),
-                    normal,
+                    new LessonTime(
+                        type === LessonType.DEFAULT
+                            ? lesson_time.substring(5)
+                            : lesson_time),
+                    type,
                     parse_result.lessonName,
                     lesson_cabinets,
                     parse_result.teacherFullNames
@@ -148,6 +154,7 @@ export class LessonScheduleParser {
                 day.lessons.push(result_lesson);
             }
 
+            day.recalculateLessons();
             group.days.push(day);
         }
 
@@ -187,8 +194,6 @@ export class LessonScheduleParser {
     private async checkGroupScheduleUpdate(cachedGroup: Group | null, group: Group): Promise<void> {
         if (cachedGroup === null)
             return;
-
-        this.stop();
 
         const affectedDays: Array<number> = [];
 

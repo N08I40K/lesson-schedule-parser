@@ -15,8 +15,6 @@ export abstract class XlsDownloaderBase {
 
     public abstract getCachedXLS(): Promise<XlsDownloaderResult | null>;
 
-    public abstract getLastETag(): string | null;
-
     public getCacheMode(): XlsDownloaderCacheMode {
         return this.cacheMode;
     }

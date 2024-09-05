@@ -1,9 +1,10 @@
-import {Group} from "src/xls";
+import {Day, Group, LessonType} from "../xls";
 import {SocialMediaBotInterface} from "./social-media-bot.interface";
 import {Context, Telegraf} from "telegraf";
 import {getConfiguration} from "../configuration";
 import {LessonScheduleParser} from "../lesson-schedule-parser";
 import {Update} from "telegraf/typings/core/types/typegram";
+import {customLessonIdxToText, defaultLessonIdxToText} from "../string.util";
 
 export class TelegramBotImpl implements SocialMediaBotInterface {
     bot: Telegraf = null;
@@ -73,18 +74,50 @@ ${cachedGroup!.days[day].toString()}`;
         this.bot.stop();
     }
 
-    async handleGroupScheduleUpdate(_cachedGroup: Group, group: Group, affectedDays: Array<number>): Promise<void> {
+    async handleScheduleUpdate(_cachedGroup: Group, group: Group, affectedDays: Array<number>): Promise<void> {
         const subscribers = getConfiguration().socialMedia.telegram.subscribers;
 
+        const announce_text = `Обновлено распиcание для группы ${group.name}!`;
         for (const subscriber of subscribers)
-            await this.bot.telegram.sendMessage(subscriber, `Обновлено распиcание для группы ${group.name}!`);
+            await this.bot.telegram.sendMessage(subscriber, announce_text);
 
         for (const day_idx of affectedDays) {
-            const serialized_day: string = group.days[day_idx].toString();
+            const day_text: string = group.days[day_idx].toString();
 
             for (const subscriber of subscribers)
-                await this.bot.telegram.sendMessage(subscriber, serialized_day);
+                await this.bot.telegram.sendMessage(subscriber, day_text);
         }
+    }
+
+    // TODO: Срочно придумать как исправить этот пиздец.
+    private static getLessonType(day: Day, lessonIdx: number, isDefault: boolean): string {
+        const internal_idx = day.getLessonIdx(lessonIdx);
+
+        if (isDefault)
+            return `${defaultLessonIdxToText(day.default_lesson_idxes.indexOf(internal_idx))} пара`;
+        return `${customLessonIdxToText(day.custom_lesson_idxes.indexOf(internal_idx))} доп. занятие`;
+
+    }
+
+    async handleLessonEnd(group: Group, dayIdx: number, lessonIdx: number, nextLessonIdx: number): Promise<void> {
+        const day = group.days[dayIdx];
+        const is_default = day.lessons[lessonIdx].type === LessonType.DEFAULT;
+
+        const announce_text = `${TelegramBotImpl.getLessonType(day, lessonIdx, is_default)} группы ${group.name} окончен${"оа"[+is_default]}!`;
+        const next_text = `Далее следует...\n\n${day.getLesson(nextLessonIdx).toString()}`;
+
+        for (const subscriber of getConfiguration().socialMedia.telegram.subscribers) {
+            await this.bot.telegram.sendMessage(subscriber, announce_text);
+            await this.bot.telegram.sendMessage(subscriber, next_text);
+        }
+    }
+
+    async handleDayEnd(group: Group, _day_idx: number): Promise<void> {
+        const subscribers = getConfiguration().socialMedia.telegram.subscribers;
+
+        const announce_text = `Все пары группы ${group.name} на сегодня окончены!`;
+        for (const subscriber of subscribers)
+            await this.bot.telegram.sendMessage(subscriber, announce_text);
     }
 
     handleSignal(signal: string): void {

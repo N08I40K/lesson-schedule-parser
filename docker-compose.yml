@@ -1,4 +1,3 @@
-version: '3.5'
 services:
   lesson_schedule_parser:
     restart: always
@@ -6,7 +5,9 @@ services:
     container_name: lesson_schedule_parser
     volumes:
       - data:/app/data
-      - ./.env/:/app/.env
+      - ./.env/:/app/.env:ro
+    environment:
+      - TZ=Asia/Yerevan
 
 volumes:
   data:

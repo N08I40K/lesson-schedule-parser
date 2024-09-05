@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import {Expose, plainToInstance} from "class-transformer";
-import {XlsDownloaderCacheMode} from "./site-downloader.base";
+import {XlsDownloaderCacheMode} from "./xls-downloader/xls-downloader.base";
 
 export class TelegramConfiguration {
     @Expose()
