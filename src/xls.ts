@@ -178,28 +178,10 @@ export class Day {
             return `${this.name}\n
 Расписание ещё не обновилось :(`.trimEnd();
 
-        let additional_lessons: number = 0;
-        let normal_lessons: number = 0;
-        let full_normal_lessons: number = 0;
-
         let lesson_description: string = "";
 
-        for (const lesson of this.lessons) {
-            const is_default = lesson.type === LessonType.DEFAULT;
-
-            if (is_default)
-                ++normal_lessons;
-            else
-                ++additional_lessons;
-
-            if (lesson.name.length === 0)
-                continue;
-
-            if (is_default)
-                ++full_normal_lessons;
-
-            lesson_description += `${is_default ? full_normal_lessons + ". " : ""}${lesson}\n\n`;
-        }
+        for (const lesson_idx of this.used_lesson_idxes)
+            lesson_description += `*${lesson_idx + 1}*. ${this.lessons[lesson_idx]}\n\n`;
 
         const start_time = this.getLesson(0).time.startMinutes;
         const end_time = this.getLesson(this.used_lesson_idxes.length - 1).time.endMinutes;
@@ -207,9 +189,15 @@ export class Day {
         const duration = end_time - start_time;
         const duration_str = `${Math.floor(duration / 60)}ч. ${duration % 60}мин.`;
 
+        const first_is_default =
+            this.default_lesson_idxes.length > 0
+            && (this.custom_lesson_idxes.length === 0
+                || this.default_lesson_idxes[0] < this.custom_lesson_idxes[0]);
+
         return `${this.name}\n
-Пар — ${full_normal_lessons} (+ ${additional_lessons} доп. занятий)
-С ${LessonTime.toStringMinutes(start_time)} до ${LessonTime.toStringMinutes(end_time)} (${duration_str})\n
+Пар — *${this.default_lesson_idxes.length}* (+ *${this.custom_lesson_idxes.length}* доп. занятий)
+С *${LessonTime.toStringMinutes(start_time)}* до *${LessonTime.toStringMinutes(end_time)}* (*${duration_str}*)
+${first_is_default ? "Приходить к *" + String(this.used_lesson_idxes[0] + 1) + "* паре." : ""}\n
 ${lesson_description}`.trimEnd();
     }
 }
