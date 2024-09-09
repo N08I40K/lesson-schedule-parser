@@ -16,7 +16,7 @@
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.5.3",
     "@types/xlsx": "^0.0.36",
-    "concurrently": "^8.2.2",
+    "concurrently": "^9.0.0",
     "nodemon": "^3.1.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
