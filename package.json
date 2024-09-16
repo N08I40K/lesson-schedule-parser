@@ -14,7 +14,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
-    "@types/node": "^22.5.4",
+    "@types/node": "^22.5.5",
     "@types/xlsx": "^0.0.36",
     "concurrently": "^9.0.0",
     "nodemon": "^3.1.4",
